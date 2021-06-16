@@ -32,6 +32,8 @@ export interface DruidUrlBuilder {
   (location: Location, secure: boolean): string
 }
 
+const withCredentials = { withCredentials: true };
+
 export interface DruidRequestDecorator {
   (decoratorRequest: DecoratorRequest, decoratorContext: { [k: string]: any }): Decoration | Promise<Decoration>;
 }
@@ -215,7 +217,7 @@ export function druidRequesterFactory(parameters: DruidRequesterParameters): Ply
   }
 
   function requestPromiseWithDecoration(opt: RequestWithDecorationOptions): Promise<any> {
-    return requestOptionsWithDecoration(opt).then(requestPromise);
+    return requestOptionsWithDecoration(opt).then((options) => requestPromise({ ...options, ...withCredentials } as any));
   }
 
   function failIfNoDatasource(url: string, query: any, timeout: number): Promise<any> {
@@ -352,7 +354,7 @@ export function druidRequesterFactory(parameters: DruidRequesterParameters): Ply
         })
           .then(
             (options) => {
-              request(options)
+              request({ ...options, ...withCredentials } as any)
                 .on('error', (err: any) => {
                   if (err.message === 'ETIMEDOUT' || err.message === 'ESOCKETTIMEDOUT') err = new Error("timeout");
                   streamError(err);
